@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 public class Client extends Person {
-    private String ClientId;
-    private String Password;
-    private ClientStatus Status;
+    private String clientId;
+    private String password;
+    private ClientStatus status;
 }

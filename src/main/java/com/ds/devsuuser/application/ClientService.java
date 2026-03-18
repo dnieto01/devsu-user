@@ -3,6 +3,7 @@ package com.ds.devsuuser.application;
 import com.ds.devsuuser.domain.dto.client.ClientDto;
 import com.ds.devsuuser.domain.dto.client.ClientMapper;
 import com.ds.devsuuser.domain.dto.client.ClientPostDto;
+import com.ds.devsuuser.domain.dto.client.ClientPutDto;
 import com.ds.devsuuser.infraestructure.database.entity.ClientEntity;
 import com.ds.devsuuser.infraestructure.database.repository.ClientRepository;
 import com.ds.devsuuser.infraestructure.exceptions.ApiException;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,21 +31,15 @@ public class ClientService {
         try {
             lock = lockService.acquireLock(key);
 
+            ClientEntity clientEntity = mapper.postDtoToEntity(clientDTO);
+            clientEntity.setClientId(UUID.randomUUID());
+            clientEntity.setStatus(true);
+
+            return mapper.entityToDTO(repository.save(clientEntity));
         } finally {
             if (lock)
                 lockService.releaseLock(key);
         }
-
-
-        /*
-        ClientEntity clientEntity = mapper.postDtoToEntity(clientDTO);
-        clientEntity.setClientId(UUID.randomUUID());
-        clientEntity.setStatus(true);
-        // identification is set from DTO in mapper
-        return mapper.entityToDTO(repository.save(clientEntity));
-
-         */
-        return null;
     }
 
     public ClientDto getClientById(String id) {
@@ -58,23 +54,38 @@ public class ClientService {
         );
     }
 
-    public ClientDto updateClient(String id, ClientDto clientDTO) {
-        ClientEntity clientEntity = repository.findById(id)
-                .orElseThrow(() -> new ApiException(ErrorCode.CLIENT_NOT_FOUND));
+    public ClientDto updateClient(String id, ClientPutDto clientDTO) {
 
-        // Use mapper to update existing entity with new values
-        mapper.updateEntityFromDTO(clientDTO, clientEntity);
+        boolean lock = false;
+        try {
+            lock = lockService.acquireLock(id);
 
-        // Ensure ID remains unchanged (though mapper shouldn't change it if not present, safer to be sure)
-        // clientEntity.setIdentification(id); // identification is PK, usually not updated
+            ClientEntity clientEntity = repository.findById(id)
+                    .orElseThrow(() -> new ApiException(ErrorCode.CLIENT_NOT_FOUND));
 
-        return mapper.entityToDTO(repository.save(clientEntity));
+            mapper.updateEntityFromPutDTO(clientDTO, clientEntity);
+            return mapper.entityToDTO(repository.save(clientEntity));
+
+        } finally {
+            if (lock)
+                lockService.releaseLock(id);
+        }
     }
 
     public void deleteClient(String id) {
-        if (!repository.existsById(id)) {
-            throw new ApiException(ErrorCode.CLIENT_NOT_FOUND);
+        boolean lock = false;
+        try {
+            lock = lockService.acquireLock(id);
+
+            if (!repository.existsById(id)) {
+                throw new ApiException(ErrorCode.CLIENT_NOT_FOUND);
+            }
+            repository.deleteById(id);
+
+        } finally {
+            if (lock)
+                lockService.releaseLock(id);
         }
-        repository.deleteById(id);
+
     }
 }

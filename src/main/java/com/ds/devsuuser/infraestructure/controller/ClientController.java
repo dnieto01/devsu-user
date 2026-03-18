@@ -3,6 +3,7 @@ package com.ds.devsuuser.infraestructure.controller;
 import com.ds.devsuuser.application.ClientService;
 import com.ds.devsuuser.domain.dto.client.ClientDto;
 import com.ds.devsuuser.domain.dto.client.ClientPostDto;
+import com.ds.devsuuser.domain.dto.client.ClientPutDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,7 @@ public class ClientController {
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> updateClient(
             @PathVariable String id,
-            @Valid @RequestBody ClientDto clientDTO) {
+            @Valid @RequestBody ClientPutDto clientDTO) {
 
         ClientDto updatedClient = clientService.updateClient(id, clientDTO);
         return ResponseEntity.ok(updatedClient);
