@@ -7,25 +7,43 @@ import com.ds.devsuuser.infraestructure.database.entity.ClientEntity;
 import com.ds.devsuuser.infraestructure.database.repository.ClientRepository;
 import com.ds.devsuuser.infraestructure.exceptions.ApiException;
 import com.ds.devsuuser.infraestructure.exceptions.ErrorCode;
+import com.ds.devsuuser.infraestructure.lock.ILockService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ClientService {
 
     private final ClientMapper mapper;
     private final ClientRepository repository;
+    private final ILockService lockService;
 
     public ClientDto createClient(ClientPostDto clientDTO) {
+        String key = clientDTO.getName();
+        boolean lock = false;
+        try {
+            lock = lockService.acquireLock(key);
+
+        } finally {
+            if (lock)
+                lockService.releaseLock(key);
+        }
+
+
+        /*
         ClientEntity clientEntity = mapper.postDtoToEntity(clientDTO);
         clientEntity.setClientId(UUID.randomUUID());
         clientEntity.setStatus(true);
         // identification is set from DTO in mapper
         return mapper.entityToDTO(repository.save(clientEntity));
+
+         */
+        return null;
     }
 
     public ClientDto getClientById(String id) {
@@ -46,7 +64,7 @@ public class ClientService {
 
         // Use mapper to update existing entity with new values
         mapper.updateEntityFromDTO(clientDTO, clientEntity);
-        
+
         // Ensure ID remains unchanged (though mapper shouldn't change it if not present, safer to be sure)
         // clientEntity.setIdentification(id); // identification is PK, usually not updated
 

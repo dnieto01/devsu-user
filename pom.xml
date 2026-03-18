@@ -96,6 +96,14 @@
             <version>1.6.3</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/redis.clients/jedis -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>7.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -135,6 +143,33 @@
                 </configuration>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <profiles>
+                            <profile>
+                                <id>local</id>
+                                <activation>
+                                    <activeByDefault>true</activeByDefault>
+                                </activation>
+                                <properties>
+                                    <spring.profiles.active>local</spring.profiles.active>
+                                </properties>
+                            </profile>
+                            <profile>
+                                <id>test</id>
+                                <properties>
+                                    <spring.profiles.active>test</spring.profiles.active>
+                                </properties>
+                            </profile>
+                        </profiles>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>
