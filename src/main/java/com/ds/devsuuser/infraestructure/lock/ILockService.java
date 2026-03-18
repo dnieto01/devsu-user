@@ -1,0 +1,6 @@
+package com.ds.devsuuser.infraestructure.lock;
+
+public interface ILockService {
+    boolean acquireLock(String key);
+    void releaseLock(String key);
+}
