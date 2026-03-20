@@ -1,4 +1,15 @@
 services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+      #volumes:
+    #  - mongo-data:/data/db
+
   redis:
     image: redis:7.0
     container_name: redis
@@ -48,6 +59,10 @@ services:
         condition: service_healthy
     networks:
       - kafka_network
+
+volumes:
+  mongo-data:
+    driver: local
 
 networks:
   kafka_network:
