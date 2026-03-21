@@ -26,10 +26,10 @@ public class ClientService {
     private final ILockService lockService;
 
     public ClientDto createClient(ClientPostDto clientDTO) {
-        String key = clientDTO.getName();
+        String key = clientDTO.getIdentification();
         boolean lock = false;
         try {
-            lock = lockService.acquireLock(key);
+            lock = acquireLockOrThrow(key);
 
             ClientEntity clientEntity = mapper.postDtoToEntity(clientDTO);
             clientEntity.setClientId(UUID.randomUUID());
@@ -58,12 +58,13 @@ public class ClientService {
 
         boolean lock = false;
         try {
-            lock = lockService.acquireLock(id);
+            lock = acquireLockOrThrow(id);
 
             ClientEntity clientEntity = repository.findById(id)
                     .orElseThrow(() -> new ApiException(ErrorCode.CLIENT_NOT_FOUND));
 
             mapper.updateEntityFromPutDTO(clientDTO, clientEntity);
+            clientEntity.setIdentification(id);
             return mapper.entityToDTO(repository.save(clientEntity));
 
         } finally {
@@ -75,7 +76,7 @@ public class ClientService {
     public void deleteClient(String id) {
         boolean lock = false;
         try {
-            lock = lockService.acquireLock(id);
+            lock = acquireLockOrThrow(id);
 
             if (!repository.existsById(id)) {
                 throw new ApiException(ErrorCode.CLIENT_NOT_FOUND);
@@ -87,5 +88,12 @@ public class ClientService {
                 lockService.releaseLock(id);
         }
 
+    }
+
+    private boolean acquireLockOrThrow(String key) {
+        if (!lockService.acquireLock(key)) {
+            throw new ApiException(ErrorCode.RESOURCE_ALREADY_LOCKED);
+        }
+        return true;
     }
 }
